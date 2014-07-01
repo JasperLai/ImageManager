@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ImageHelper</string>
+    <string name="action_settings">Settings</string>
+    <item type="id" name="tag_image_worker"></item>
+    <item type="id" name="tag_second"></item>
+</resources>
