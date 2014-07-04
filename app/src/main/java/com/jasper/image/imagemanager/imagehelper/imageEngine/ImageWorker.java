@@ -30,6 +30,7 @@ import android.widget.ImageView;
 
 import com.jasper.image.imagemanager.BuildConfig;
 import com.jasper.image.imagemanager.R;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.ImageProcessor;
 import com.jasper.image.imagemanager.imagehelper.utils.DrawableUtils;
 import com.jasper.image.imagemanager.imagehelper.utils.VersionUtils;
 
@@ -48,6 +49,7 @@ public abstract class ImageWorker {
 
 	private ImageCache mImageCache;
 	private ImageCache.ImageCacheParams mImageCacheParams;
+
 	//暂时不用，现在使用全局的.9 loading图
 	private Bitmap mLoadingBitmap = null;
 	private int	mLoadingRes = -1;
@@ -65,6 +67,8 @@ public abstract class ImageWorker {
 	private static final int MESSAGE_FLUSH = 2;
 	private static final int MESSAGE_CLOSE = 3;
 
+    private ImageProcessor mProcessor = null;
+
 	protected ImageWorker(Context context) {
 		mResources = context.getResources();
 	}
@@ -76,17 +80,12 @@ public abstract class ImageWorker {
 	 * @param imageView The ImageView to bind the downloaded image to.
 	 */
 	public void loadImage(Object data, ImageView imageView) {
-		loadImage(data, imageView, ImageLoadHelper.BITMAP_PATTEN_DEFAULT,
-				ImageCache.BITMAP_STORAGE_DEFAULT);
+		loadImage(data, imageView, ImageLoadHelper.BITMAP_PATTEN_DEFAULT);
 	}
 
-	public void loadImage(Object data, ImageView imageView, int imageProcessType) {
-		loadImage(data, imageView, imageProcessType,
-				ImageCache.BITMAP_STORAGE_DEFAULT);
-	}
 
 	public void loadImage(Object data, ImageView imageView,
-			int imageProcessType, int imageStorageType) {
+			int imageProcessType) {
 		if (data == null) {
 			return;
 		}
@@ -102,7 +101,7 @@ public abstract class ImageWorker {
 			imageView.setImageDrawable(value);
 		} else if (cancelPotentialWork(data, imageView)) {
 			final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView,
-					imageProcessType, imageStorageType);
+					imageProcessType);
 			final AsyncDrawable asyncDrawable = new AsyncDrawable(mResources,
 					mLoadingBitmap, task);
 					
@@ -251,14 +250,12 @@ public abstract class ImageWorker {
 		private Object mData;
 		private final WeakReference<ImageView> imageViewReference;
 		private int mImagePattern = ImageLoadHelper.BITMAP_PATTEN_DEFAULT;
-		private int mImageStorage = ImageCache.BITMAP_STORAGE_DEFAULT;
 
 		public BitmapWorkerTask(Object data, ImageView imageView,
-				int imPattern, int imStorage) {
+				int imPattern) {
 			mData = data;
 			imageViewReference = new WeakReference<ImageView>(imageView);
 			mImagePattern = imPattern;
-			mImageStorage = imStorage;
 		}
 
 		/**
@@ -335,8 +332,7 @@ public abstract class ImageWorker {
 							finalBitmap, bitmap);
 				}
 				if (mImageCache != null) {
-					mImageCache.addBitmapToCache(dataString, drawable,
-							mImageStorage);
+					mImageCache.addBitmapToCache(dataString, drawable);
 				}
 
 			}
