@@ -25,6 +25,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.jasper.image.imagemanager.BuildConfig;
@@ -195,7 +196,7 @@ public abstract class ImageWorker {
 			bitmapWorkerTask.cancel(true);
 			if (BuildConfig.DEBUG) {
 				final Object bitmapData = bitmapWorkerTask.mData;
-				//LogUtil.d(TAG, "cancelWork - cancelled work for " + bitmapData);
+				Log.d(TAG, "cancelWork - cancelled work for " + bitmapData);
 			}
 		}
 	}
@@ -214,8 +215,8 @@ public abstract class ImageWorker {
 			if (bitmapData == null || !bitmapData.equals(data)) {
 				bitmapWorkerTask.cancel(true);
 				if (BuildConfig.DEBUG) {
-//					LogUtil.d(TAG, "cancelPotentialWork - cancelled work for "
-//							+ data);
+					Log.d(TAG, "cancelPotentialWork - cancelled work for "
+							+ data);
 				}
 			} else {
 				// The same work is already in progress.
