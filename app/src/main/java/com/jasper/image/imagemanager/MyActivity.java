@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.jasper.image.imagemanager.imagehelper.imageEngine.ImageLoadHelper;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.ProcessorFactory;
 
 
 public class MyActivity extends Activity {
@@ -31,7 +32,10 @@ public class MyActivity extends Activity {
             @Override
             public void onClick(View view) {
 
-                ImageLoadHelper.getInstance(getApplicationContext()).getImageFetcher().loadImage(url, image);
+            ImageLoadHelper.getInstance(getApplicationContext()).
+                    getImageFetcher().
+                    loadImage(url, image,
+                        ProcessorFactory.create(ProcessorFactory.ProcessorTypeRoundCorner));
             }
         });
 
