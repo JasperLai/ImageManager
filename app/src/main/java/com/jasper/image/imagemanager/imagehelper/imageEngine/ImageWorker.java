@@ -92,6 +92,7 @@ public abstract class ImageWorker {
 
         if (value != null) {
             // Bitmap found in memory cache
+            //直接使用setImageDrawable 偶尔会图片莫名缩小或者过大，可以采用setBitmap的方式解决
             if (processor != null) {
                 Bitmap processedBmp = processor.process(value.getBitmap());
                 BitmapDrawable processedDrawable = new BitmapDrawable(mResources, processedBmp);
