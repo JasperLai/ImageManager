@@ -7,9 +7,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.jasper.image.imagemanager.imagehelper.imageEngine.ImageLoadHelper;
 import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.ProcessorFactory;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.BusProvider;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.ImageReadyEvent;
+import com.squareup.otto.Subscribe;
 
 
 public class MyActivity extends Activity {
@@ -28,20 +32,31 @@ public class MyActivity extends Activity {
         image = (ImageView) findViewById(R.id.image);
         btn = (Button) findViewById(R.id.btn);
 
+        BusProvider.getInstance().register(this);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-            ImageLoadHelper.getInstance(getApplicationContext()).
-                    getImageFetcher().
-                    loadImage(url, image,
-                        ProcessorFactory.create(ProcessorFactory.ProcessorTypeRoundCorner));
+                ImageLoadHelper.getInstance(getApplicationContext()).
+                        getImageFetcher().
+                        loadImage(url, image,
+                                ProcessorFactory.create(ProcessorFactory.ProcessorTypeRoundCorner));
             }
         });
 
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        BusProvider.getInstance().unregister(this);
+    }
+
+    @Subscribe
+    public void imageReady(ImageReadyEvent event) {
+        Toast.makeText(this, "Image get", Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

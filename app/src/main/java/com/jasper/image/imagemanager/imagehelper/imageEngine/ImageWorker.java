@@ -29,6 +29,9 @@ import android.widget.ImageView;
 import com.jasper.image.imagemanager.BuildConfig;
 import com.jasper.image.imagemanager.R;
 import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.ImageProcessor;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.BusProvider;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.ImageReadyEvent;
+import com.squareup.otto.Produce;
 
 import java.lang.ref.WeakReference;
 
@@ -65,6 +68,7 @@ public abstract class ImageWorker {
 
     protected ImageWorker(Context context) {
         mResources = context.getResources();
+        BusProvider.getInstance().register(this);
     }
 
     /**
@@ -330,7 +334,6 @@ public abstract class ImageWorker {
          */
         @Override
         protected void onPostExecute(BitmapDrawable value) {
-            // BEGIN_INCLUDE(complete_background_work)
             // if cancel was called on this task or the "exit early" flag is set
             // then we're done
             if (isCancelled() || mExitTasksEarly) {
@@ -347,8 +350,9 @@ public abstract class ImageWorker {
                 }
 
             }
-            // END_INCLUDE(complete_background_work)
+
         }
+
 
         @Override
         protected void onCancelled(BitmapDrawable value) {
@@ -374,7 +378,11 @@ public abstract class ImageWorker {
             return null;
         }
     }
-
+    @Produce
+    public ImageReadyEvent produceIREvent(BitmapDrawable bd) {
+        // Assuming 'lastAnswer' exists.
+        return new ImageReadyEvent(bd);
+    }
     /**
      * A custom Drawable that will be attached to the imageView while the work
      * is in progress. Contains a reference to the actual worker task, so that
@@ -422,6 +430,8 @@ public abstract class ImageWorker {
         } else {
             imageView.setImageDrawable(drawable);
         }
+        BusProvider.getInstance().post(produceIREvent((BitmapDrawable)drawable));
+
     }
 
     /**
@@ -442,21 +452,6 @@ public abstract class ImageWorker {
             }
         }
     }
-
-//	private Bitmap patternedBitmap(int pattern, Bitmap bitmap) {
-//		Bitmap finalBitmap = null;
-//		switch (pattern) {
-//		case ImageLoadHelper.BITMAP_PATTEN_ROUND_CORNER:
-//			finalBitmap = DrawableUtils.roundCornered(bitmap, 6, 7);
-//			break;
-//		case ImageLoadHelper.BITMAP_PATTEN_DEFAULT:
-//		default:
-//			finalBitmap = bitmap;
-//			break;
-//		}
-//
-//		return finalBitmap;
-//	}
 
     protected class CacheAsyncTask extends AsyncTask<Object, Void, Void> {
 
