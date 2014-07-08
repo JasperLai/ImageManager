@@ -10,7 +10,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.jasper.image.imagemanager.imagehelper.imageEngine.ImageLoadHelper;
-import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.ProcessorFactory;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.GreyProcessor;
+import com.jasper.image.imagemanager.imagehelper.imageEngine.effects.RoundCornerProcessor;
 import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.BusProvider;
 import com.jasper.image.imagemanager.imagehelper.imageEngine.notify.ImageReadyEvent;
 import com.squareup.otto.Subscribe;
@@ -39,8 +40,8 @@ public class MyActivity extends Activity {
 
                 ImageLoadHelper.getInstance(getApplicationContext()).
                         getImageFetcher().
-                        loadImage(url, image,
-                                ProcessorFactory.create(ProcessorFactory.ProcessorTypeRoundCorner));
+                        loadImage(url, image, new RoundCornerProcessor(new GreyProcessor(null))
+                               );
             }
         });
 

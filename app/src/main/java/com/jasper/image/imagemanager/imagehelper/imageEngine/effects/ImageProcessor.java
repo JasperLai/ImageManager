@@ -5,8 +5,10 @@ import android.graphics.Bitmap;
 /**
  * Created by jasperlai on 14-7-4.
  */
-public interface ImageProcessor {
+public abstract class ImageProcessor {
 
-    public Bitmap process(Bitmap originalBitmap);
+    ImageProcessor mProcessor = null;
+
+    public abstract Bitmap process(Bitmap originalBitmap);
 
 }
