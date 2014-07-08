@@ -22,7 +22,6 @@ public class MyActivity extends Activity {
     String url = "http://a.hiphotos.baidu.com/space/wh%3D126%2C168/sign=ab2045568e5494ee877707181fc3cccf/6a600c338744ebf842b2a0d6dbf9d72a6159a71c.jpg";
     ImageView image = null;
 
-
     Button btn = null;
 
     @Override
@@ -33,7 +32,7 @@ public class MyActivity extends Activity {
         image = (ImageView) findViewById(R.id.image);
         btn = (Button) findViewById(R.id.btn);
 
-        BusProvider.getInstance().register(this);
+
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -46,6 +45,12 @@ public class MyActivity extends Activity {
         });
 
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        BusProvider.getInstance().register(this);
     }
 
     @Override
