@@ -38,7 +38,7 @@ public class MyActivity extends Activity {
             @Override
             public void onClick(View view) {
 
-                ImageLoadHelper.getInstance(getApplicationContext()).
+                ImageLoadHelper.getInstance().
                         getImageFetcher().
                         loadImage(url, image, new RoundCornerProcessor(new GreyProcessor(null))
                                );
