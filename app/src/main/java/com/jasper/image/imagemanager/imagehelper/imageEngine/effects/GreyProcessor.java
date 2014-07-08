@@ -15,7 +15,16 @@ public class GreyProcessor extends ImageProcessor{
 
     @Override
     public Bitmap process(Bitmap originalBitmap) {
-        return DrawableUtils.convertGreyImg(originalBitmap);
+        Bitmap finalBitmap = null;
+        if(mProcessor != null){
+            Bitmap middle = mProcessor.process(originalBitmap);
+            finalBitmap =  DrawableUtils.convertGreyImg(middle);
+            middle.recycle();
+
+        }else{
+            finalBitmap = DrawableUtils.convertGreyImg(originalBitmap);
+        }
+        return finalBitmap;
     }
 
 }
