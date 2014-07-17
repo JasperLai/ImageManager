@@ -94,36 +94,23 @@ public abstract class ImageWorker {
             value = mImageCache.getBitmapFromMemCache(String.valueOf(data));
         }
 
-        if (value != null) {
-            // Bitmap found in memory cache
-            //直接使用setImageDrawable 偶尔会图片莫名缩小或者过大，可以采用setBitmap的方式解决
-            if (processor != null) {
-                Bitmap processedBmp = processor.process(value.getBitmap());
-                BitmapDrawable processedDrawable = new BitmapDrawable(mResources, processedBmp);
-                setImageDrawable(imageView, processedDrawable);
-            } else {
-                setImageDrawable(imageView, value);
-            }
+        cancelWork(imageView);
 
-        } else if (cancelPotentialWork(data, imageView)) {
-            final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView,
-                    processor);
-            final AsyncDrawable asyncDrawable = new AsyncDrawable(mResources,
-                    mLoadingBitmap, task);
+        final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView,
+                processor);
+        final AsyncDrawable asyncDrawable = new AsyncDrawable(mResources,
+                mLoadingBitmap, task);
 
-            if (mLoadingRes > 0) {
-                imageView.setImageResource(mLoadingRes);
-            }
-            imageView.setTag(R.id.tag_image_worker, asyncDrawable);
-            //imageView.setImageDrawable(asyncDrawable);
-
-            // NOTE: This uses a custom version of AsyncTask that has been
-            // pulled from the
-            // framework and slightly modified. Refer to the docs at the top of
-            // the class
-            // for more info on what was changed.
-            task.executeOnExecutor(AsyncTask.DUAL_THREAD_EXECUTOR);
+        //support .9 loading background, check if memory loading to prevent from image flash
+        if (mLoadingRes > 0 && value != null) {
+            imageView.setImageResource(mLoadingRes);
         }
+
+        imageView.setTag(R.id.tag_image_worker, asyncDrawable);
+        //imageView.setImageDrawable(asyncDrawable);
+
+        task.executeOnExecutor(AsyncTask.DUAL_THREAD_EXECUTOR);
+
     }
 
     /**
@@ -256,7 +243,7 @@ public abstract class ImageWorker {
         private Object mData;
         private final WeakReference<ImageView> imageViewReference;
         private ImageProcessor mProcessor = null;
-
+        private boolean mImageFromMemory = false;
         public BitmapWorkerTask(Object data, ImageView imageView,
                                 ImageProcessor processor) {
             mData = data;
@@ -277,7 +264,6 @@ public abstract class ImageWorker {
             final String dataString = String.valueOf(mData);
             Bitmap bitmap = null;
             BitmapDrawable drawable = null;
-
             // Wait here if work is paused and the task is not cancelled
             synchronized (mPauseWorkLock) {
                 while (mPauseWork && !isCancelled()) {
@@ -288,6 +274,15 @@ public abstract class ImageWorker {
                 }
             }
 
+            BitmapDrawable value = null;
+            if (mImageCache != null && !isCancelled()
+                    && getAttachedImageView() != null && !mExitTasksEarly) {
+                value = mImageCache.getBitmapFromMemCache(dataString);
+                if(value != null){
+                    bitmap = value.getBitmap();
+                    mImageFromMemory = true;
+                }
+            }
             // If the image cache is available and this task has not been
             // cancelled by another
             // thread and the ImageView that was originally bound to this task
@@ -295,7 +290,7 @@ public abstract class ImageWorker {
             // to this task and our "exit early" flag is not set then try and
             // fetch the bitmap from
             // the cache
-            if (mImageCache != null && !isCancelled()
+            if (bitmap == null && mImageCache != null && !isCancelled()
                     && getAttachedImageView() != null && !mExitTasksEarly) {
                 bitmap = mImageCache.getBitmapFromDiskCache(dataString);
             }
@@ -316,9 +311,19 @@ public abstract class ImageWorker {
             }
 
             // cache the original bitmap
-            if (bitmap != null && mImageCache != null) {
-                drawable = new BitmapDrawable(mResources, bitmap);
-                mImageCache.addBitmapToCache(dataString, drawable);
+            if (bitmap != null ) {
+
+                if(mImageCache != null && !mImageFromMemory) {
+                    mImageCache.addBitmapToCache(dataString, new BitmapDrawable(mResources, bitmap));
+                }
+
+                if(mProcessor != null){
+                    Bitmap final_bitmap = mProcessor.process(bitmap);
+                    drawable = new BitmapDrawable(mResources,
+                            final_bitmap);
+                }else{
+                    drawable = new BitmapDrawable(mResources, bitmap);
+                }
             }
 
             if (BuildConfig.DEBUG) {
@@ -341,14 +346,8 @@ public abstract class ImageWorker {
             }
             final ImageView imageView = getAttachedImageView();
             if (value != null && imageView != null) {
-                if (mProcessor != null) {
-                    Bitmap processedBmp = mProcessor.process(value.getBitmap());
-                    BitmapDrawable processedDrawable = new BitmapDrawable(mResources, processedBmp);
-                    setImageDrawable(imageView, processedDrawable);
-                } else {
-                    setImageDrawable(imageView, value);
-                }
-
+                setImageDrawable(imageView, value, !mImageFromMemory);
+                BusProvider.getInstance().post(produceIREvent(value));
             }
 
         }
@@ -414,8 +413,8 @@ public abstract class ImageWorker {
      * @param imageView
      * @param drawable
      */
-    private void setImageDrawable(ImageView imageView, Drawable drawable) {
-        if (mFadeInBitmap) {
+    private void setImageDrawable(ImageView imageView, Drawable drawable, boolean fade) {
+        if (fade) {
             // Transition drawable with a transparent drawable and the final
             // drawable
             final TransitionDrawable td = new TransitionDrawable(
@@ -430,7 +429,7 @@ public abstract class ImageWorker {
         } else {
             imageView.setImageDrawable(drawable);
         }
-        BusProvider.getInstance().post(produceIREvent((BitmapDrawable)drawable));
+
 
     }
 

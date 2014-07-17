@@ -31,7 +31,8 @@ public class MyActivity extends Activity {
         setContentView(R.layout.activity_my);
         image = (ImageView) findViewById(R.id.image);
         btn = (Button) findViewById(R.id.btn);
-
+        ImageLoadHelper.getInstance().
+                getImageFetcher().setImageSize(50);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -39,7 +40,7 @@ public class MyActivity extends Activity {
 
                 ImageLoadHelper.getInstance().
                         getImageFetcher().
-                        loadImage(url, image, new RoundCornerProcessor(new GreyProcessor(null))
+                        loadImage(url, image, new RoundCornerProcessor(null)
                                );
             }
         });
@@ -50,7 +51,12 @@ public class MyActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
         BusProvider.getInstance().register(this);
+        ImageLoadHelper.getInstance().
+                getImageFetcher().
+                loadImage(url, image, new RoundCornerProcessor(null)
+                );
     }
 
     @Override
